@@ -1,0 +1,22 @@
+From f7e2f0ccc67b547ae9b6e2c3eb56eef1b09fe115 Mon Sep 17 00:00:00 2001
+From: Maciej Nowak <mnowak@kplabs.pl>
+Date: Fri, 12 Jul 2024 10:06:24 +0000
+Subject: [PATCH] Switch to nanbield
+
+---
+ conf/layer.conf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/conf/layer.conf b/conf/layer.conf
+index 3f7027d..2c632db 100644
+--- a/conf/layer.conf
++++ b/conf/layer.conf
+@@ -20,4 +20,4 @@ BBFILE_PATTERN_IGNORE_EMPTY_vitis-ai = "1"
+ 
+ LAYERDEPENDS_vitis-ai  = "core xilinx"
+ 
+-LAYERSERIES_COMPAT_vitis-ai = "langdale"
++LAYERSERIES_COMPAT_vitis-ai = "nanbield"
+-- 
+2.34.1
+

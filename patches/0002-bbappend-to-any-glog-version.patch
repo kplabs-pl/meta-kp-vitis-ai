@@ -1,0 +1,17 @@
+From 7fb6c26d685688c0cd017f8b2179401ce32412c0 Mon Sep 17 00:00:00 2001
+From: Maciej Nowak <mnowak@kplabs.pl>
+Date: Fri, 12 Jul 2024 10:16:09 +0000
+Subject: [PATCH] bbappend to any glog version
+
+---
+ recipes-support/glog/{glog_0.5.0.bbappend => glog_%.bbappend} | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ rename recipes-support/glog/{glog_0.5.0.bbappend => glog_%.bbappend} (100%)
+
+diff --git a/recipes-support/glog/glog_0.5.0.bbappend b/recipes-support/glog/glog_%.bbappend
+similarity index 100%
+rename from recipes-support/glog/glog_0.5.0.bbappend
+rename to recipes-support/glog/glog_%.bbappend
+-- 
+2.34.1
+

@@ -1,0 +1,90 @@
+From 1054f3cc95b193f2ef83a95bbfbb0b510352fcc3 Mon Sep 17 00:00:00 2001
+From: Maciej Nowak <mnowak@kplabs.pl>
+Date: Fri, 12 Jul 2024 09:17:38 +0000
+Subject: [PATCH] Newset GCC & abseil compatibility
+
+---
+ src/vai_runtime/xir/CMakeLists.txt             |  1 +
+ src/vai_runtime/xir/src/python/CMakeLists.txt  | 16 +++++++++++++++-
+ src/vai_runtime/xir/src/xir/CMakeLists.txt     | 18 ++++++++++++++++++
+ src/vai_runtime/xir/src/xir/attrs/attr_def.cpp |  1 +
+ 4 files changed, 35 insertions(+), 1 deletion(-)
+
+diff --git a/src/vai_runtime/xir/CMakeLists.txt b/src/vai_runtime/xir/CMakeLists.txt
+index 1ae5e000b..bdfca5116 100644
+--- a/src/vai_runtime/xir/CMakeLists.txt
++++ b/src/vai_runtime/xir/CMakeLists.txt
+@@ -39,6 +39,7 @@ endif()
+ find_package(Boost REQUIRED)
+ find_package(Protobuf REQUIRED)
+ find_package(Threads REQUIRED)
++find_package(absl REQUIRED)
+ 
+ add_subdirectory(src)
+ add_subdirectory(tools)
+diff --git a/src/vai_runtime/xir/src/python/CMakeLists.txt b/src/vai_runtime/xir/src/python/CMakeLists.txt
+index b743378f6..ecc41c8df 100644
+--- a/src/vai_runtime/xir/src/python/CMakeLists.txt
++++ b/src/vai_runtime/xir/src/python/CMakeLists.txt
+@@ -14,5 +14,19 @@
+ 
+ vai_add_pybind11_module(wrapper MODULE_NAME xir wrapper/wrapper.cpp
+                         wrapper/pyxir_error_code.cpp)
+-target_link_libraries(wrapper PRIVATE xir unilog::unilog)
++target_link_libraries(wrapper PRIVATE xir unilog::unilog 
++    absl::algorithm
++    absl::base
++    absl::debugging
++    absl::flat_hash_map
++    absl::flags
++    absl::memory
++    absl::meta
++    absl::numeric
++    absl::random_random
++    absl::strings
++    absl::synchronization
++    absl::time
++    absl::utility
++)
+ target_include_directories(wrapper PRIVATE ${PROJECT_SOURCE_DIR}/src)
+diff --git a/src/vai_runtime/xir/src/xir/CMakeLists.txt b/src/vai_runtime/xir/src/xir/CMakeLists.txt
+index fc52a6099..5af50fc37 100644
+--- a/src/vai_runtime/xir/src/xir/CMakeLists.txt
++++ b/src/vai_runtime/xir/src/xir/CMakeLists.txt
+@@ -109,6 +109,24 @@ else(BUILD_SHARED_LIBS)
+       PUBLIC protobuf::libprotobuf Threads::Threads ${CMAKE_DL_LIBS}
+       PUBLIC unilog::unilog)
+ endif(BUILD_SHARED_LIBS)
++
++target_link_libraries(${PROJECT_NAME} PRIVATE
++    absl::algorithm
++    absl::base
++    absl::debugging
++    absl::flat_hash_map
++    absl::flags
++    absl::memory
++    absl::meta
++    absl::numeric
++    absl::random_random
++    absl::strings
++    absl::synchronization
++    absl::time
++    absl::utility
++    absl::log
++)
++
+ # Enable Export of public APIs
+ target_compile_definitions(${PROJECT_NAME} PRIVATE -DXIR_EXPORT)
+ if(BUILD_SHARED_LIBS)
+diff --git a/src/vai_runtime/xir/src/xir/attrs/attr_def.cpp b/src/vai_runtime/xir/src/xir/attrs/attr_def.cpp
+index a7c2cc824..f3b5cf921 100644
+--- a/src/vai_runtime/xir/src/xir/attrs/attr_def.cpp
++++ b/src/vai_runtime/xir/src/xir/attrs/attr_def.cpp
+@@ -19,6 +19,7 @@
+ #include <typeindex>
+ #include <typeinfo>
+ #include <vector>
++#include <cstdint>
+ 
+ namespace xir {
+ 

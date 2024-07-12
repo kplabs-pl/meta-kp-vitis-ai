@@ -1,0 +1,10 @@
+This repository contains patches for meta-vitis-ai layer and makes it compatible with nanbield Yocto release
+
+Fixes include
+* Missing `cstdint` includes
+* Missing `std::` scopes
+* `abseil` usage in CMake (really weird linking errors without fixing)
+* Warnings reported by newer GCC (just silence warnings)
+	* Most of these warnings come from Protobuf-generated code (/shrug)
+* google log API change
+

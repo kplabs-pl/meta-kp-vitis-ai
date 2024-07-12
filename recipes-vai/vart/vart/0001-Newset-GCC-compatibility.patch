@@ -1,0 +1,127 @@
+From e4f3be10290b53833ecd84322893cac40b20da38 Mon Sep 17 00:00:00 2001
+From: Maciej Nowak <mnowak@kplabs.pl>
+Date: Fri, 12 Jul 2024 09:16:12 +0000
+Subject: [PATCH] Newset GCC compatibility
+
+---
+ src/vai_runtime/vart/async-runner/CMakeLists.txt             | 1 +
+ .../vart/dpu-controller/runner-assistant/CMakeLists.txt      | 1 +
+ src/vai_runtime/vart/runner/include/vitis/ai/dpu_runner.hpp  | 0
+ src/vai_runtime/vart/runner/include/vitis/ai/runner.hpp      | 0
+ src/vai_runtime/vart/runner/include/vitis/ai/tensor.hpp      | 1 +
+ src/vai_runtime/vart/trace/include/vitis/ai/event.hpp        | 1 +
+ .../vart/trace/vaitrace/vaitraceTools/mem_perf/xapm/apm.cpp  | 0
+ .../vaitrace/vaitraceTools/mem_perf/xapm/include/apm.hpp     | 0
+ src/vai_runtime/vart/util/include/vart/util_4bit.hpp         | 1 +
+ src/vai_runtime/vart/util/include/vitis/ai/parse_value.hpp   | 5 +++--
+ 10 files changed, 8 insertions(+), 2 deletions(-)
+ mode change 100755 => 100644 src/vai_runtime/vart/runner/include/vitis/ai/dpu_runner.hpp
+ mode change 100755 => 100644 src/vai_runtime/vart/runner/include/vitis/ai/runner.hpp
+ mode change 100755 => 100644 src/vai_runtime/vart/runner/include/vitis/ai/tensor.hpp
+ mode change 100755 => 100644 src/vai_runtime/vart/trace/vaitrace/vaitraceTools/mem_perf/xapm/apm.cpp
+ mode change 100755 => 100644 src/vai_runtime/vart/trace/vaitrace/vaitraceTools/mem_perf/xapm/include/apm.hpp
+
+diff --git a/src/vai_runtime/vart/async-runner/CMakeLists.txt b/src/vai_runtime/vart/async-runner/CMakeLists.txt
+index 32309710e..ca522f233 100644
+--- a/src/vai_runtime/vart/async-runner/CMakeLists.txt
++++ b/src/vai_runtime/vart/async-runner/CMakeLists.txt
+@@ -31,6 +31,7 @@ set_target_properties(
+   PROPERTIES VERSION "${PROJECT_VERSION}"
+              SOVERSION "${PROJECT_VERSION_MAJOR}"
+              OUTPUT_NAME ${PROJECT_NAME}-${COMPONENT_NAME})
++target_compile_options(${COMPONENT_NAME} PRIVATE -Wno-array-bounds)
+ install(
+   TARGETS ${COMPONENT_NAME}
+   RUNTIME DESTINATION bin
+diff --git a/src/vai_runtime/vart/dpu-controller/runner-assistant/CMakeLists.txt b/src/vai_runtime/vart/dpu-controller/runner-assistant/CMakeLists.txt
+index 0b108d858..d29aaa463 100644
+--- a/src/vai_runtime/vart/dpu-controller/runner-assistant/CMakeLists.txt
++++ b/src/vai_runtime/vart/dpu-controller/runner-assistant/CMakeLists.txt
+@@ -56,6 +56,7 @@ set_target_properties(
+   PROPERTIES VERSION "${PROJECT_VERSION}"
+              SOVERSION "${PROJECT_VERSION_MAJOR}"
+              OUTPUT_NAME ${PROJECT_NAME}-${COMPONENT_NAME})
++target_compile_options(${COMPONENT_NAME} PRIVATE -Wno-array-bounds)
+ install(
+   TARGETS ${COMPONENT_NAME}
+   EXPORT ${COMPONENT_NAME}-targets
+diff --git a/src/vai_runtime/vart/runner/include/vitis/ai/dpu_runner.hpp b/src/vai_runtime/vart/runner/include/vitis/ai/dpu_runner.hpp
+old mode 100755
+new mode 100644
+diff --git a/src/vai_runtime/vart/runner/include/vitis/ai/runner.hpp b/src/vai_runtime/vart/runner/include/vitis/ai/runner.hpp
+old mode 100755
+new mode 100644
+diff --git a/src/vai_runtime/vart/runner/include/vitis/ai/tensor.hpp b/src/vai_runtime/vart/runner/include/vitis/ai/tensor.hpp
+old mode 100755
+new mode 100644
+index 2191fffc8..afb6abf10
+--- a/src/vai_runtime/vart/runner/include/vitis/ai/tensor.hpp
++++ b/src/vai_runtime/vart/runner/include/vitis/ai/tensor.hpp
+@@ -17,6 +17,7 @@
+ 
+ #include <string>
+ #include <vector>
++#include <cstdint>
+ 
+ namespace vitis {
+ namespace ai {
+diff --git a/src/vai_runtime/vart/trace/include/vitis/ai/event.hpp b/src/vai_runtime/vart/trace/include/vitis/ai/event.hpp
+index 20b9dda6a..303d3c6c8 100644
+--- a/src/vai_runtime/vart/trace/include/vitis/ai/event.hpp
++++ b/src/vai_runtime/vart/trace/include/vitis/ai/event.hpp
+@@ -21,6 +21,7 @@
+ #include <sstream>
+ #include <string>
+ #include <utility>
++#include <cstdint>
+ #if _WIN32
+ using MY_DWORD = uint32_t;
+ // MSVC NOTE: it is dangerous to include windows.h in public header files. it
+diff --git a/src/vai_runtime/vart/trace/vaitrace/vaitraceTools/mem_perf/xapm/apm.cpp b/src/vai_runtime/vart/trace/vaitrace/vaitraceTools/mem_perf/xapm/apm.cpp
+old mode 100755
+new mode 100644
+diff --git a/src/vai_runtime/vart/trace/vaitrace/vaitraceTools/mem_perf/xapm/include/apm.hpp b/src/vai_runtime/vart/trace/vaitrace/vaitraceTools/mem_perf/xapm/include/apm.hpp
+old mode 100755
+new mode 100644
+diff --git a/src/vai_runtime/vart/util/include/vart/util_4bit.hpp b/src/vai_runtime/vart/util/include/vart/util_4bit.hpp
+index 739e178bf..3843e4fb1 100644
+--- a/src/vai_runtime/vart/util/include/vart/util_4bit.hpp
++++ b/src/vai_runtime/vart/util/include/vart/util_4bit.hpp
+@@ -20,6 +20,7 @@
+ #include <sstream>
+ #include <string>
+ #include <vector>
++#include <cstdint>
+ 
+ namespace vart {
+ 
+diff --git a/src/vai_runtime/vart/util/include/vitis/ai/parse_value.hpp b/src/vai_runtime/vart/util/include/vitis/ai/parse_value.hpp
+index 9a6f71412..0950b3a37 100644
+--- a/src/vai_runtime/vart/util/include/vitis/ai/parse_value.hpp
++++ b/src/vai_runtime/vart/util/include/vitis/ai/parse_value.hpp
+@@ -16,6 +16,7 @@
+ #pragma once
+ #include <cassert>
+ #include <sstream>
++#include <cstdint>
+ namespace vitis {
+ namespace ai {
+ template <typename T>
+@@ -38,7 +39,7 @@ inline void parse_value(const std::string& text, long long& value) {
+   }
+ }
+ 
+-inline void parse_value(const std::string& text, uint32_t& value) {
++inline void parse_value(const std::string& text, std::uint32_t& value) {
+   if (text.size() > 2 && text[0] == '0' && text[1] == 'x') {
+     value = stoul(text.substr(2), 0, 16);
+   } else {
+@@ -46,7 +47,7 @@ inline void parse_value(const std::string& text, uint32_t& value) {
+   }
+ }
+ 
+-inline void parse_value(const std::string& text, uint64_t& value) {
++inline void parse_value(const std::string& text, std::uint64_t& value) {
+   if (text.size() > 2 && text[0] == '0' && text[1] == 'x') {
+     value = stoull(text.substr(2), 0, 16);
+   } else {

@@ -1,0 +1,173 @@
+From d7baf7c10b1f50c81761ea832deb7c820b05fa05 Mon Sep 17 00:00:00 2001
+From: Maciej Nowak <mnowak@kplabs.pl>
+Date: Fri, 12 Jul 2024 09:17:01 +0000
+Subject: [PATCH] Newset GCC & glog compatibility
+
+---
+ src/vai_library/CMakeLists.txt                  |  4 ++++
+ src/vai_library/clocs/src/scatter.hpp           |  1 +
+ src/vai_library/cmake/XilinxCommon.cmake        |  6 +++---
+ src/vai_library/model_config/src/config.cpp     |  8 ++++----
+ src/vai_library/xmodel_image/CMakeLists.txt     | 17 +++++++++++++++++
+ .../samples/test_jpeg_xmodel_image.cpp          |  2 +-
+ src/vai_library/xnnpp/src/tfssd/tfssd_post.cpp  | 10 +++++-----
+ .../xnnpp/src/ultrafast/ultrafast_postimp.cpp   |  2 +-
+ 8 files changed, 36 insertions(+), 14 deletions(-)
+
+diff --git a/src/vai_library/CMakeLists.txt b/src/vai_library/CMakeLists.txt
+index 4fbc83ba6..ce7b87524 100644
+--- a/src/vai_library/CMakeLists.txt
++++ b/src/vai_library/CMakeLists.txt
+@@ -123,6 +123,8 @@ set(INSTALL_BIN_DIR bin)
+ set(INSTALL_INCLUDE_DIR include)
+ set(INSTALL_CMAKE_DIR share/cmake/${PROJECT_NAME})
+ 
++add_compile_options(-Wno-stringop-overflow)
++
+ if(ENABLE_DPUCADX8G_RUNNER)
+   # Enble supported models for DPUV1
+   unset(DISABLE_ALL CACHE)
+@@ -188,6 +190,8 @@ endif(NOT OpenCV_FOUND)
+ find_package(PkgConfig REQUIRED)
+ pkg_search_module(JSONC REQUIRED IMPORTED_TARGET json-c)
+ 
++find_package(absl REQUIRED)
++
+ enable_testing()
+ 
+ # add subirectories
+diff --git a/src/vai_library/clocs/src/scatter.hpp b/src/vai_library/clocs/src/scatter.hpp
+index 405e143c6..0ba53e91f 100644
+--- a/src/vai_library/clocs/src/scatter.hpp
++++ b/src/vai_library/clocs/src/scatter.hpp
+@@ -17,6 +17,7 @@
+ #include <string>
+ #include <utility>
+ #include <vector>
++#include <cstdint>
+ 
+ namespace vitis {
+ namespace ai {
+diff --git a/src/vai_library/cmake/XilinxCommon.cmake b/src/vai_library/cmake/XilinxCommon.cmake
+index 14ede0971..63a957fa3 100644
+--- a/src/vai_library/cmake/XilinxCommon.cmake
++++ b/src/vai_library/cmake/XilinxCommon.cmake
+@@ -12,15 +12,15 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ #
+-set (CMAKE_CXX_STANDARD 17)
++#set (CMAKE_CXX_STANDARD 17)
+ #set (CMAKE_CXX_STANDARD 14)
+ set (CMAKE_C_STANDARD 99)
+ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb -O0 -fno-inline -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0")
+ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17 -Wall -Werror -Wno-pessimizing-move -Wno-deprecated-declarations")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-pessimizing-move -Wno-deprecated-declarations")
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror")
+ set(CMAKE_EXE "${CMAKE_C_FLAGS} -Wall -Werror")
+-set(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
++#set(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+ 
+ set(CMAKE_MACOSX_RPATH 1)
+ 
+diff --git a/src/vai_library/model_config/src/config.cpp b/src/vai_library/model_config/src/config.cpp
+index d9202b084..2f9712ea2 100644
+--- a/src/vai_library/model_config/src/config.cpp
++++ b/src/vai_library/model_config/src/config.cpp
+@@ -124,10 +124,10 @@ static std::shared_ptr<vitis::ai::proto::DpuModelParamList> instance() {
+   static std::shared_ptr<vitis::ai::proto::DpuModelParamList> ret;
+   std::lock_guard<std::mutex> lock(*mutex.get());
+   if (!ret) {
+-    google::protobuf::LogSilencer* s1 = new google::protobuf::LogSilencer;
+-    if (0) {
+-      std::cerr << "suppress warning of unused variable " << s1 << std::endl;
+-    }
++    // google::protobuf::LogSilencer* s1 = new google::protobuf::LogSilencer;
++    // if (0) {
++    //   std::cerr << "suppress warning of unused variable " << s1 << std::endl;
++    // }
+     ret = create();
+   }
+   assert(ret != nullptr);
+diff --git a/src/vai_library/xmodel_image/CMakeLists.txt b/src/vai_library/xmodel_image/CMakeLists.txt
+index f14608bd4..c0af2b292 100644
+--- a/src/vai_library/xmodel_image/CMakeLists.txt
++++ b/src/vai_library/xmodel_image/CMakeLists.txt
+@@ -68,6 +68,23 @@ vai_add_sample(
+ vai_add_sample(test_jpeg_xmodel_image SRCS samples/test_jpeg_xmodel_image.cpp
+                REQUIRE glog::glog ${OpenCV_LIBS})
+ 
++target_link_libraries(test_jpeg_xmodel_image
++    absl::algorithm
++    absl::base
++    absl::debugging
++    absl::flat_hash_map
++    absl::flags
++    absl::memory
++    absl::meta
++    absl::numeric
++    absl::random_random
++    absl::strings
++    absl::synchronization
++    absl::time
++    absl::utility
++    absl::status
++)
++
+ vai_add_test(test_postprocessor REQUIRE ${PROJECT_NAME}::xmodel_jit
+              ${PROJECT_NAME}::runner_helper vart::runner-assistant glog::glog)
+ 
+diff --git a/src/vai_library/xmodel_image/samples/test_jpeg_xmodel_image.cpp b/src/vai_library/xmodel_image/samples/test_jpeg_xmodel_image.cpp
+index 268b4a50b..394626010 100644
+--- a/src/vai_library/xmodel_image/samples/test_jpeg_xmodel_image.cpp
++++ b/src/vai_library/xmodel_image/samples/test_jpeg_xmodel_image.cpp
+@@ -35,7 +35,7 @@ static inline void Convert_Pb2Json(const google::protobuf::Message& message,
+   std::string jsonStr;
+   google::protobuf::util::JsonOptions options;
+ 
+-  google::protobuf::util::MessageToJsonString(message, &jsonStr, options);
++  (void)google::protobuf::util::MessageToJsonString(message, &jsonStr, options);
+ 
+   if(g_json_file.empty()) {
+     std::cout << jsonStr << std::endl;
+diff --git a/src/vai_library/xnnpp/src/tfssd/tfssd_post.cpp b/src/vai_library/xnnpp/src/tfssd/tfssd_post.cpp
+index 5f747850d..aca4065d2 100644
+--- a/src/vai_library/xnnpp/src/tfssd/tfssd_post.cpp
++++ b/src/vai_library/xnnpp/src/tfssd/tfssd_post.cpp
+@@ -224,17 +224,17 @@ TFSSDPost::TFSSDPost(
+      LOG(FATAL) << "parse error for tensorflow offical config file: " << cfgpath;
+   }
+ 
+-  google::protobuf::LogSilencer* s1 = new google::protobuf::LogSilencer;
+-  if (0) {
+-    std::cerr << "suppress warning of unused variable " << s1 << std::endl;
+-  }
++  // google::protobuf::LogSilencer* s1 = new google::protobuf::LogSilencer;
++  // if (0) {
++  //   std::cerr << "suppress warning of unused variable " << s1 << std::endl;
++  // }
+ 
+   object_detection::protos::TrainEvalPipelineConfig tfcfg;
+   auto ok = google::protobuf::TextFormat::ParseFromString(text, &tfcfg);
+   if (!ok) {
+     LOG(FATAL) << "parse error for tensorflow offical config file: " << cfgpath;
+   }
+-  delete s1;
++  // delete s1;
+ 
+   num_classes_ = (tfcfg.model().ssd().num_classes() + 1);
+   score_converter_ =
+diff --git a/src/vai_library/xnnpp/src/ultrafast/ultrafast_postimp.cpp b/src/vai_library/xnnpp/src/ultrafast/ultrafast_postimp.cpp
+index 24366ee2f..36717a456 100644
+--- a/src/vai_library/xnnpp/src/ultrafast/ultrafast_postimp.cpp
++++ b/src/vai_library/xnnpp/src/ultrafast/ultrafast_postimp.cpp
+@@ -107,7 +107,7 @@ UltraFastResult UltraFastPostImp::post_process(unsigned int idx)
+      if ( npsum[i] >2 ) { 
+         for(unsigned int j=0; j<row_anchor.size(); j++) {
+            if (loc[j*o_channel+i] > 0) {
+-              lane.emplace_back( std::make_pair( loc[j*o_channel+i]-1, row_anchor[j] ));
++              lane.emplace_back(  loc[j*o_channel+i]-1, row_anchor[j] );
+            } else {
+               lane.emplace_back( std::make_pair(-2, row_anchor[j] ));
+            }
